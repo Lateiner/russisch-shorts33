@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Multiple-Choice</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --error-color: #c53030;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .question-box {
+            background-color: #edf2f7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a202c;
+            border: 1px solid var(--border-color);
+        }
+
+        .question-box .russian-text {
+            display: block;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* Verstecke den echten Radio-Button, nutze das Label als Kachel */
+        .option-item input[type="radio"] {
+            display: none;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .option-label:hover {
+            border-color: #cbd5e0;
+            background-color: #f7fafc;
+        }
+
+        /* Präfix wie A), B), C) stylen */
+        .option-prefix {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 15px;
+            font-size: 1.1rem;
+        }
+
+        /* Zustand: Ausgewählt (bevor geprüft wird) */
+        .option-item input[type="radio"]:checked + .option-label {
+            border-color: var(--primary-color);
+            background-color: #ebf8ff;
+        }
+
+        /* Zustand: Richtig validiert */
+        .option-item.correct .option-label {
+            border-color: var(--success-color) !important;
+            background-color: #f0fff4 !important;
+            color: #22543d;
+        }
+        .option-item.correct .option-prefix {
+            color: var(--success-color);
+        }
+
+        /* Zustand: Falsch validiert */
+        .option-item.incorrect .option-label {
+            border-color: var(--error-color) !important;
+            background-color: #fff5f5 !important;
+            color: #742a2a;
+        }
+        .option-item.incorrect .option-prefix {
+            color: var(--error-color);
+        }
+
+        /* Footer und Buttons */
+        .controls-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .check-btn { background-color: var(--success-color); }
+        .check-btn:hover { background-color: #22543d; }
+        
+        .reset-btn { background-color: #718096; }
+        .reset-btn:hover { background-color: #4a5568; }
+
+        .feedback {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        /* Mobile Optimierungen */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .question-box {
+                font-size: 1.05rem;
+                padding: 15px;
+            }
+            .question-box .russian-text {
+                font-size: 1.3rem;
+            }
+            .option-label {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Die Kernbedeutung verstehen</h1>
+    
+    <div class="question-box">
+        Was drückt man mit der Redewendung aus?
+        <span class="russian-text">как бы не так</span>
+    </div>
+
+    <div class="options-list">
+        <!-- Option A -->
+        <div class="option-item" id="item-A">
+            <input type="radio" name="multipleChoice" id="opt-A" value="A">
+            <label for="opt-A" class="option-label">
+                <span class="option-prefix">A)</span> Höfliche Zustimmung
+            </label>
+        </div>
+
+        <!-- Option B (RICHTIG) -->
+        <div class="option-item" id="item-B">
+            <input type="radio" name="multipleChoice" id="opt-B" value="B">
+            <label for="opt-B" class="option-label">
+                <span class="option-prefix">B)</span> Vehementen Widerspruch
+            </label>
+        </div>
+
+        <!-- Option C -->
+        <div class="option-item" id="item-C">
+            <input type="radio" name="multipleChoice" id="opt-C" value="C">
+            <label for="opt-C" class="option-label">
+                <span class="option-prefix">C)</span> Große Überraschung
+            </label>
+        </div>
+    </div>
+
+    <div class="controls-footer">
+        <div id="feedback-box" class="feedback"></div>
+        
+        <div class="btn-group">
+            <button class="action-btn check-btn" onclick="checkAnswer()">Prüfen</button>
+            <button class="action-btn reset-btn" onclick="resetGame()">🔄 Neustart</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isEvaluated = false;
+
+    function checkAnswer() {
+        // Verhindert mehrfaches Prüfen ohne Reset
+        if (isEvaluated) return;
+
+        const selectedRadio = document.querySelector('input[name="multipleChoice"]:checked');
+        const feedbackBox = document.getElementById('feedback-box');
+
+        // Validierung: Wurde überhaupt etwas ausgewählt?
+        if (!selectedRadio) {
+            feedbackBox.style.display = "block";
+            feedbackBox.style.backgroundColor = "#feebc8";
+            feedbackBox.style.color = "#744210";
+            feedbackBox.style.borderColor = "#dd6b20";
+            feedbackBox.innerHTML = "<strong>Bitte wähle eine Antwort aus!</strong>";
+            return;
+        }
+
+        const answer = selectedRadio.value;
+        isEvaluated = true;
+
+        // Visualisierung der richtigen Antwort (B ist immer grün)
+        document.getElementById('item-B').classList.add('correct');
+
+        feedbackBox.style.display = "block";
+
+        if (answer === 'B') {
+            // Richtige Antwort gewählt
+            feedbackBox.style.backgroundColor = "#c6f6d5";
+            feedbackBox.style.color = "#22543d";
+            feedbackBox.style.borderColor = "var(--success-color)";
+            feedbackBox.innerHTML = "<strong>Absolut richtig!</strong> Mit <strong>как бы не так</strong> signalisiert man dem Gegenüber einen klaren, meist umgangssprachlichen Widerspruch (wie „Von wegen!“ oder „Denkste!“).";
+        } else {
+            // Falsche Antwort gewählt
+            document.getElementById('item-' + answer).classList.add('incorrect');
+            
+            feedbackBox.style.backgroundColor = "#fed7d7";
+            feedbackBox.style.color = "#742a2a";
+            feedbackBox.style.borderColor = "var(--error-color)";
+            
+            if (answer === 'A') {
+                feedbackBox.innerHTML = "<strong>Leider falsch.</strong> Für Zustimmung (ob höflich oder unhöflich) nutzt man ganz andere Ausdrücke. Diese Phrase meint das genaue Gegenteil.";
+            } else if (answer === 'C') {
+                feedbackBox.innerHTML = "<strong>Nicht ganz.</strong> Auch wenn man manchmal überrascht wirkt, wenn man widerspricht: Der primäre Zweck der Phrase ist es, einer Behauptung aktiv zu widersprechen.";
+            }
+        }
+    }
+
+    function resetGame() {
+        isEvaluated = false;
+        
+        // Radio-Buttons demarkieren
+        const selectedRadio = document.querySelector('input[name="multipleChoice"]:checked');
+        if (selectedRadio) {
+            selectedRadio.checked = false;
+        }
+
+        // Alle CSS-Klassen für richtig/falsch entfernen
+        const items = document.querySelectorAll('.option-item');
+        items.forEach(item => {
+            item.classList.remove('correct', 'incorrect');
+        });
+
+        // Feedback-Box verstecken
+        const feedbackBox = document.getElementById('feedback-box');
+        feedbackBox.style.display = "none";
+        feedbackBox.innerHTML = "";
+    }
+</script>
+
+</body>
+</html>
