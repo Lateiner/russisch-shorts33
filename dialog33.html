@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Messenger-Quiz</title>
+    <style>
+        :root {
+            --primary-color: #075e54;
+            --chat-bg: #efeae2;
+            --success-color: #2f855a;
+            --error-color: #c53030;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            font-size: 0.85rem;
+            color: #718096;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .instruction {
+            background-color: #e6f4ea;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        /* Chat-Fenster */
+        .chat-window {
+            background-color: var(--chat-bg);
+            background-image: radial-gradient(rgba(0,0,0,0.04) 15%, transparent 16%);
+            background-size: 16px 16px;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 250px;
+            border: 1px solid #d1d7db;
+            margin-bottom: 25px;
+        }
+
+        /* Sprechblasen */
+        .bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            animation: popIn 0.3s ease;
+        }
+
+        .bubble-meta {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        .bubble.friend {
+            background-color: #ffffff;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .bubble.user {
+            background-color: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .placeholder-text {
+            color: #8c9194;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        /* Antworttasten */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid #cbd5e0;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: center;
+            color: #2d3748;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary-color);
+            background-color: #f7fafc;
+            transform: translateY(-1px);
+        }
+
+        /* Validierung */
+        .chat-window.correct-state .bubble.user {
+            background-color: #c6f6d5;
+            border: 1px solid var(--success-color);
+            color: #1c4521;
+        }
+
+        .chat-window.incorrect-state .bubble.user {
+            background-color: #fed7d7;
+            border: 1px solid var(--error-color);
+            color: #651a1a;
+        }
+
+        /* Footer */
+        .feedback {
+            display: none;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            display: block;
+            width: 100%;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+            text-align: center;
+        }
+
+        .next-btn { background-color: var(--primary-color); margin-bottom: 10px; display: none; }
+        .next-btn:hover { background-color: #054c43; }
+
+        .reset-btn { background-color: #718096; }
+        .reset-btn:hover { background-color: #4a5568; }
+
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            h1 { font-size: 1.4rem; }
+            .bubble { max-width: 90%; font-size: 0.95rem; }
+            .option-btn { font-size: 1rem; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Dialog-Vervollständigung</h1>
+    <div class="progress-bar" id="progress">Aussage 1 von 5</div>
+    
+    <div class="instruction" id="instruction-text">
+        Anleitung wird geladen...
+    </div>
+
+    <div class="chat-window" id="chat">
+        <div class="bubble friend" id="friend-bubble">
+            <div class="bubble-meta">Freund</div>
+            <span id="friend-text">Text lädt...</span>
+        </div>
+
+        <div class="bubble user" id="user-bubble">
+            <span class="placeholder-text" id="placeholder">Wähle unten eine Antwort...</span>
+        </div>
+    </div>
+
+    <div class="options-container" id="options-box">
+        </div>
+
+    <div id="feedback-box" class="feedback"></div>
+    
+    <button class="nav-btn next-btn" id="next-button" onclick="nextRound()">Nächste Aussage ➡️</button>
+    <button class="nav-btn reset-btn" onclick="resetGame()">🔄 Neustart</button>
+</div>
+
+<script>
+    // Spieldaten für die 5 Runden
+    const scenarios = [
+        {
+            instruction: "Dein Freund zweifelt pessimistisch daran, dass du deine Prüfung mit Bravour schaffst. Antworte schlagfertig mit „Von wegen!“.",
+            friendText: "Ты никогда не сдашь этот экзамен на 5.",
+            options: [
+                { text: "Большое спасибо!", correct: false, feedback: "Das heißt „Vielen Dank“. Damit stimmst du seinem Zweifel unbewusst zu." },
+                { text: "Как бы не так!", correct: true, feedback: "<strong>Perfekt!</strong> „Как бы не так!“ heißt „Von wegen!“ und bricht seinen Pessimismus sofort." },
+                { text: "Приятного аппетита!", correct: false, feedback: "Das bedeutet „Guten Appetit“ und macht in diesem Kontext keinen Sinn." }
+            ]
+        },
+        {
+            instruction: "Dein Kumpel hat gekocht und serviert dir gerade ein super leckeres Mittagessen. Antworte höflich.",
+            friendText: "Обед готов, приятного аппетита!",
+            options: [
+                { text: "Как бы не так!", correct: false, feedback: "Autsch! Wenn du hier „Von wegen!“ sagst, beleidigst du den Koch." },
+                { text: "Спасибо, и тебе тоже!", correct: true, feedback: "<strong>Richtig!</strong> Du bedankst dich („Danke, dir auch!“) für den guten Appetit." },
+                { text: "Ничего страшного.", correct: false, feedback: "Das heißt „Nichts Schlimmes / Macht nichts“ – unpassend bei einem netten Essen." }
+            ]
+        },
+        {
+            instruction: "Ein Mitschüler behauptet fälschlicherweise, dass der Bus heute gar nicht mehr kommt. Du weißt, dass er gleich da ist. Widerspreche ihm laut Anleitung.",
+            friendText: "Автобус сегодня больше не приедет.",
+            options: [
+                { text: "Поздравляю!", correct: false, feedback: "Das bedeutet „Herzlichen Glückwunsch!“ – hier völlig unangebracht." },
+                { text: "Извини, пожалуйста.", correct: false, feedback: "Damit entschuldigst du dich. Du hast aber keinen Fehler gemacht." },
+                { text: "Как бы не так!", correct: true, feedback: "<strong>Hervorragend!</strong> Damit korrigierst du seine Behauptung schlagfertig: „Denkste! Der Bus kommt gleich.“" }
+            ]
+        },
+        {
+            instruction: "Ein Freund ruft dich an und fragt ganz unbefangen, wie es dir momentan geht. Antworte passend.",
+            friendText: "Привет! Как твои дела?",
+            options: [
+                { text: "Как бы не так!", correct: false, feedback: "Falscher Kontext. Auf eine normale Frage antwortet man nicht mit einem schroffen Widerspruch." },
+                { text: "Хорошо, спасибо! А у тебя?", correct: true, feedback: "<strong>Klasse!</strong> Eine normale, freundliche Antwort: „Gut, danke! Und bei dir?“" },
+                { text: "Я не знаю.", correct: false, feedback: "„Ich weiß nicht“ wäre hier eine sehr seltsame und abweisende Antwort." }
+            ]
+        },
+        {
+            instruction: "Jemand behauptet spöttisch, dass du den russischen Text ohne Hilfe niemals übersetzen kannst. Zeig ihm, dass er dich unterschätzt!",
+            friendText: "Ты не сможешь перевести этот текст без словаря.",
+            options: [
+                { text: "До свидания!", correct: false, feedback: "Das heißt „Auf Wiedersehen“. Damit flüchtest du nur aus der Situation." },
+                { text: "Как бы не так!", correct: true, feedback: "<strong>Genau!</strong> Du weist die Einschränkung stolz zurück: „Von wegen! Ich kann das sehr wohl alleine.“" },
+                { text: "Будь здоров!", correct: false, feedback: "Das wünscht man jemandem, der niest („Gesundheit!“). Passt hier nicht." }
+            ]
+        }
+    ];
+
+    let currentRound = 0;
+    let isRoundEvaluated = false;
+
+    // Spiel starten
+    window.onload = function() {
+        loadRound();
+    };
+
+    function loadRound() {
+        isRoundEvaluated = false;
+        const data = scenarios[currentRound];
+
+        // UI-Texte setzen
+        document.getElementById("progress").innerText = `Aussage ${currentRound + 1} von 5`;
+        document.getElementById("instruction-text").innerHTML = data.instruction;
+        document.getElementById("friend-text").innerText = data.friendText;
+        
+        // Eigene Sprechblase leeren
+        const chat = document.getElementById("chat");
+        chat.className = "chat-window";
+        document.getElementById("user-bubble").innerHTML = '<span class="placeholder-text" id="placeholder">Wähle unten eine Antwort...</span>';
+        
+        // Feedback und Weiter-Button ausblenden
+        document.getElementById("feedback-box").style.display = "none";
+        document.getElementById("next-button").style.display = "none";
+
+        // Tasten generieren
+        const optionsBox = document.getElementById("options-box");
+        optionsBox.innerHTML = "";
+        data.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt.text;
+            btn.onclick = function() { selectOption(this, opt.correct, opt.feedback); };
+            optionsBox.appendChild(btn);
+        });
+    }
+
+    function selectOption(buttonElement, isCorrect, feedbackMessage) {
+        if (isRoundEvaluated) return;
+        isRoundEvaluated = true;
+
+        const userBubble = document.getElementById("user-bubble");
+        const chat = document.getElementById("chat");
+        const feedbackBox = document.getElementById("feedback-box");
+        const nextButton = document.getElementById("next-button");
+
+        // Antwort in die Sprechblase eintragen
+        userBubble.innerHTML = `<div class="bubble-meta">Du</div>${buttonElement.innerText}`;
+
+        // Buttons deaktivieren
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach(b => b.disabled = true);
+
+        // Feedback-Box stylen
+        feedbackBox.style.display = "block";
+
+        if (isCorrect) {
+            chat.classList.add("correct-state");
+            feedbackBox.style.backgroundColor = "#c6f6d5";
+            feedbackBox.style.color = "#22543d";
+            feedbackBox.style.border = "1px solid var(--success-color)";
+            feedbackBox.innerHTML = feedbackMessage;
+            
+            // Zeige Weiter-Button (oder Abschlussmeldung)
+            if (currentRound < scenarios.length - 1) {
+                nextButton.style.display = "block";
+            } else {
+                feedbackBox.innerHTML += "<br><br>🎉 <strong>Glückwunsch! Du hast das gesamte Chat-Quiz erfolgreich gemeistert!</strong>";
+            }
+        } else {
+            chat.classList.add("incorrect-state");
+            feedbackBox.style.backgroundColor = "#fed7d7";
+            feedbackBox.style.color = "#742a2a";
+            feedbackBox.style.border = "1px solid var(--error-color)";
+            feedbackBox.innerHTML = `<strong>Nicht ganz!</strong> ${feedbackMessage} <br>Klicke unten auf „Neustart“, um es noch einmal zu versuchen.`;
+        }
+    }
+
+    function nextRound() {
+        if (currentRound < scenarios.length - 1) {
+            currentRound++;
+            loadRound();
+        }
+    }
+
+    function resetGame() {
+        currentRound = 0;
+        loadRound();
+    }
+</script>
+
+</body>
+</html>
