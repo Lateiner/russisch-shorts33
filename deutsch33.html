@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Drag &amp; Drop</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --error-color: #c53030;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .instruction {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        /* Flex-Layout wechselt auf Mobilgeräten zu Spalten */
+        .workspace {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .zone-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        /* Die Boxen für die Kärtchen */
+        .card-pool, .target-dropzone {
+            background-color: #edf2f7;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 250px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+            transition: all 0.2s ease;
+        }
+
+        .target-dropzone {
+            border-color: var(--primary-color);
+            background-color: #f7fafc;
+        }
+
+        .target-dropzone.drag-over {
+            background-color: #e2e8f0;
+            border-style: solid;
+        }
+
+        /* Die ziehbaren Kärtchen */
+        .draggable-card {
+            background-color: white;
+            border: 1px solid #cbd5e0;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: grab;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            user-select: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+
+        .draggable-card:active {
+            cursor: grabbing;
+        }
+
+        .draggable-card.correct-placed {
+            background-color: #c6f6d5;
+            border-color: var(--success-color);
+            color: #22543d;
+        }
+
+        .draggable-card.incorrect-placed {
+            background-color: #fed7d7;
+            border-color: var(--error-color);
+            color: #742a2a;
+        }
+
+        /* Mobile Optimierung */
+        @media (max-width: 768px) {
+            .workspace {
+                flex-direction: column;
+            }
+            .card-pool, .target-dropzone {
+                min-height: 150px;
+            }
+            .instruction {
+                font-size: 0.95rem;
+            }
+            .draggable-card {
+                padding: 12px 18px; /* Größere Touch-Flächen für Smartphones */
+            }
+        }
+
+        /* Unterer Bereich */
+        .controls-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .check-btn { background-color: var(--success-color); }
+        .check-btn:hover { background-color: #22543d; }
+        
+        .reset-btn { background-color: #718096; }
+        .reset-btn:hover { background-color: #4a5568; }
+
+        .feedback {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Deutsche Entsprechungen finden</h1>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Welche deutschen Ausdrücke bedeuten dasselbe wie die russische Redewendung? 
+        <br><em>Desktop:</em> Ziehe die passenden Kärtchen in die Zielbox.
+        <br><em>Smartphone/Tablet:</em> Tippe ein Kärtchen an, um es direkt in die Zielbox (oder zurück) zu bewegen.
+    </div>
+
+    <div class="workspace">
+        <!-- Linke Spalte: Start-Pool -->
+        <div class="column">
+            <div class="zone-title">Ausdrücke</div>
+            <div class="card-pool" id="pool" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="draggable-card" id="card1" draggable="true" ondragstart="drag(event)" onclick="toggleCard(this)" data-correct="true">Von wegen!</div>
+                <div class="draggable-card" id="card2" draggable="true" ondragstart="drag(event)" onclick="toggleCard(this)" data-correct="false">Guten Tag</div>
+                <div class="draggable-card" id="card3" draggable="true" ondragstart="drag(event)" onclick="toggleCard(this)" data-correct="true">Denkste!</div>
+                <div class="draggable-card" id="card4" draggable="true" ondragstart="drag(event)" onclick="toggleCard(this)" data-correct="false">Vielen Dank</div>
+                <div class="draggable-card" id="card5" draggable="true" ondragstart="drag(event)" onclick="toggleCard(this)" data-correct="true">Pustekuchen!</div>
+                <div class="draggable-card" id="card6" draggable="true" ondragstart="drag(event)" onclick="toggleCard(this)" data-correct="false">Alles Gute</div>
+            </div>
+        </div>
+
+        <!-- Rechte Spalte: Zielbox -->
+        <div class="column">
+            <div class="zone-title">как бы не так</div>
+            <div class="target-dropzone" id="target" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                <!-- Hier landen die Kärtchen -->
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-footer">
+        <div id="feedback-box" class="feedback"></div>
+        
+        <div class="btn-group">
+            <button class="action-btn check-btn" onclick="checkAnswers()">Prüfen</button>
+            <button class="action-btn reset-btn" onclick="resetGame()">🔄 Neustart</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Drag und Drop Funktionen für Desktop
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function dragEnter(ev) {
+        if(ev.target.id === "target") ev.target.classList.add("drag-over");
+    }
+
+    function dragLeave(ev) {
+        if(ev.target.id === "target") ev.target.classList.remove("drag-over");
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const targetZone = document.getElementById("target");
+        const poolZone = document.getElementById("pool");
+        targetZone.classList.remove("drag-over");
+        
+        const data = ev.dataTransfer.getData("text");
+        const card = document.getElementById(data);
+        
+        // Findet die korrekte Dropzone, falls über ein anderes Kärtchen gedroppt wurde
+        let dest = ev.target;
+        while (dest && dest.id !== "target" && dest.id !== "pool") {
+            dest = dest.parentNode;
+        }
+        if (dest) dest.appendChild(card);
+        clearStyles(card);
+    }
+
+    // Klick-Steuerung für mobile Endgeräte (Smartphone / Tablet)
+    function toggleCard(card) {
+        const pool = document.getElementById("pool");
+        const target = document.getElementById("target");
+        
+        if (card.parentNode.id === "pool") {
+            target.appendChild(card);
+        } else {
+            pool.appendChild(card);
+        }
+        clearStyles(card);
+    }
+
+    function clearStyles(card) {
+        card.className = "draggable-card";
+        document.getElementById("feedback-box").style.display = "none";
+    }
+
+    // Überprüfung der Antworten
+    function checkAnswers() {
+        const targetZone = document.getElementById("target");
+        const poolZone = document.getElementById("pool");
+        const feedbackBox = document.getElementById("feedback-box");
+        
+        const targetCards = targetZone.querySelectorAll(".draggable-card");
+        const poolCards = poolZone.querySelectorAll(".draggable-card");
+        
+        let correctInTarget = 0;
+        let incorrectInTarget = 0;
+        let correctLeftInPool = 0;
+
+        // Karten in der Zielbox auswerten
+        targetCards.forEach(card => {
+            if (card.getAttribute("data-correct") === "true") {
+                card.classList.add("correct-placed");
+                correctInTarget++;
+            } else {
+                card.classList.add("incorrect-placed");
+                incorrectInTarget++;
+            }
+        });
+
+        // Karten im Pool prüfen, ob richtige Ausdrücke vergessen wurden
+        poolCards.forEach(card => {
+            if (card.getAttribute("data-correct") === "true") {
+                correctLeftInPool++;
+            }
+        });
+
+        // Feedback-Logik
+        feedbackBox.style.display = "block";
+        if (correctInTarget === 3 && incorrectInTarget === 0) {
+            feedbackBox.style.backgroundColor = "#c6f6d5";
+            feedbackBox.style.color = "#22543d";
+            feedbackBox.style.border = "1px solid var(--success-color)";
+            feedbackBox.innerHTML = "<strong>Perfekt!</strong> Du hast genau die richtigen umgangssprachlichen Ausdrücke für <strong>как бы не так</strong> gefunden: Von wegen!, Denkste! und Pustekuchen!.";
+        } else if (incorrectInTarget > 0) {
+            feedbackBox.style.backgroundColor = "#fed7d7";
+            feedbackBox.style.color = "#742a2a";
+            feedbackBox.style.border = "1px solid var(--error-color)";
+            feedbackBox.innerHTML = "<strong>Noch nicht ganz richtig.</strong> In der Zielbox befinden sich Ausdrücke, die keine Form des Widerspruchs sind. Nimm falsche Karten wieder heraus.";
+        } else if (correctLeftInPool > 0) {
+            feedbackBox.style.backgroundColor = "#feebc8";
+            feedbackBox.style.color = "#744210";
+            feedbackBox.style.border = "1px solid #dd6b20";
+            feedbackBox.innerHTML = "<strong>Gut angefangen!</strong> Du hast zwar keine falschen Karten gewählt, aber es fehlen noch passende Ausdrücke im Zielbereich.";
+        }
+    }
+
+    // Spiel zurücksetzen
+    function resetGame() {
+        const pool = document.getElementById("pool");
+        const feedbackBox = document.getElementById("feedback-box");
+        
+        // Alle Karten zurück in den Pool werfen
+        const allCards = document.querySelectorAll(".draggable-card");
+        allCards.forEach(card => {
+            card.className = "draggable-card";
+            pool.appendChild(card);
+        });
+
+        feedbackBox.style.display = "none";
+        feedbackBox.innerHTML = "";
+    }
+</script>
+
+</body>
+</html>
