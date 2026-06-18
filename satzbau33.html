@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Satzbau-Puzzle</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --error-color: #c53030;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instruction {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        .zone-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #718096;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .puzzle-section {
+            margin-bottom: 25px;
+        }
+
+        .tile-container {
+            background-color: #edf2f7;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 85px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .target-container {
+            border: 2px solid var(--primary-color);
+            background-color: #fff;
+            min-height: 95px;
+        }
+
+        .word-tile {
+            background-color: white;
+            border: 2px solid #cbd5e0;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.1s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
+            color: #1a202c;
+        }
+
+        .word-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-color: #a0aec0;
+        }
+
+        .word-tile:active {
+            transform: translateY(0);
+        }
+
+        .target-container.correct-box {
+            background-color: #f0fff4;
+            border-color: var(--success-color);
+        }
+        .target-container.correct-box .word-tile {
+            background-color: #c6f6d5;
+            border-color: var(--success-color);
+            color: #22543d;
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .target-container.incorrect-box {
+            background-color: #fff5f5;
+            border-color: var(--error-color);
+        }
+        .target-container.incorrect-box .word-tile {
+            background-color: #fed7d7;
+            border-color: var(--error-color);
+            color: #742a2a;
+        }
+
+        .controls-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .check-btn { background-color: var(--success-color); }
+        .check-btn:hover { background-color: #22543d; }
+        
+        .reset-btn { background-color: #718096; }
+        .reset-btn:hover { background-color: #4a5568; }
+
+        .feedback {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.5rem; }
+            .instruction { font-size: 0.95rem; padding: 12px; }
+            .word-tile { padding: 10px 18px; font-size: 1.1rem; }
+            .btn-group { flex-direction: column; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Satzbau-Puzzle (Chunking)</h1>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Bringe die Wörter in die richtige Reihenfolge, um die gelernte Redewendung zu bilden. 
+        Tippe die Kacheln einfach an, um sie in die Lösungsbox zu legen oder wieder zu entfernen.
+    </div>
+
+    <!-- Oberer Pool: Verfügbare Wörter -->
+    <div class="puzzle-section">
+        <div class="zone-title">Verfügbare Wörter</div>
+        <div class="tile-container" id="word-pool"></div>
+    </div>
+
+    <!-- Unterer Pool: Deine Antwort -->
+    <div class="puzzle-section">
+        <div class="zone-title">Deine Lösung</div>
+        <div class="tile-container target-container" id="target-box"></div>
+    </div>
+
+    <div class="controls-footer">
+        <div id="feedback-box" class="feedback"></div>
+        
+        <div class="btn-group">
+            <button class="action-btn check-btn" onclick="checkSentence()">Prüfen</button>
+            <button class="action-btn reset-btn" onclick="resetGame()">🔄 Neustart</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const correctOrder = ["как", "бы", "не", "так"];
+    const initialWords = ["так", "как", "бы", "не"];
+    let isEvaluated = false;
+
+    // Beim Laden starten
+    window.onload = function() {
+        initPool();
+    };
+
+    function initPool() {
+        const pool = document.getElementById("word-pool");
+        pool.innerHTML = "";
+        initialWords.forEach((word, index) => {
+            const tile = document.createElement("div");
+            tile.className = "word-tile";
+            tile.innerText = word;
+            tile.id = "tile-" + index;
+            tile.onclick = function() { moveTile(this); };
+            pool.appendChild(tile);
+        });
+    }
+
+    function moveTile(tile) {
+        if (isEvaluated) return; 
+
+        const pool = document.getElementById("word-pool");
+        const target = document.getElementById("target-box");
+        const feedbackBox = document.getElementById("feedback-box");
+        
+        feedbackBox.style.display = "none";
+        target.classList.remove("incorrect-box");
+
+        if (tile.parentNode.id === "word-pool") {
+            target.appendChild(tile);
+        } else {
+            pool.appendChild(tile);
+        }
+    }
+
+    function checkSentence() {
+        if (isEvaluated) return;
+
+        const target = document.getElementById("target-box");
+        const feedbackBox = document.getElementById('feedback-box');
+        const currentTiles = target.querySelectorAll(".word-tile");
+
+        if (currentTiles.length < correctOrder.length) {
+            feedbackBox.style.display = "block";
+            feedbackBox.style.backgroundColor = "#feebc8";
+            feedbackBox.style.color = "#744210";
+            feedbackBox.style.borderColor = "#dd6b20";
+            feedbackBox.innerHTML = "<strong>Bitte verwende alle Kacheln</strong>, um den Satz zu vervollständigen.";
+            return;
+        }
+
+        let userOrder = [];
+        currentTiles.forEach(tile => {
+            userOrder.push(tile.innerText);
+        });
+
+        let isCorrect = true;
+        for (let i = 0; i < correctOrder.length; i++) {
+            if (userOrder[i] !== correctOrder[i]) {
+                isCorrect = false;
+                break;
+            }
+        }
+
+        feedbackBox.style.display = "block";
+
+        if (isCorrect) {
+            isEvaluated = true;
+            target.classList.add("correct-box");
+            feedbackBox.style.backgroundColor = "#c6f6d5";
+            feedbackBox.style.color = "#22543d";
+            feedbackBox.style.borderColor = "var(--success-color)";
+            feedbackBox.innerHTML = "<strong>Ausgezeichnet!</strong> Die Reihenfolge ist absolut richtig: <strong>как бы не так</strong>.";
+        } else {
+            target.classList.add("incorrect-box");
+            feedbackBox.style.backgroundColor = "#fed7d7";
+            feedbackBox.style.color = "#742a2a";
+            feedbackBox.style.borderColor = "var(--error-color)";
+            feedbackBox.innerHTML = "<strong>Leider nicht richtig.</strong> Das Muster stimmt noch nicht. Klicke auf die Kacheln, um sie neu anzuordnen und versuche es noch einmal.";
+        }
+    }
+
+    function resetGame() {
+        isEvaluated = false;
+        
+        // Lösungsfeld komplett leeren
+        const target = document.getElementById("target-box");
+        target.innerHTML = "";
+        target.className = "tile-container target-container";
+        
+        // Feedback-Box ausblenden
+        const feedbackBox = document.getElementById("feedback-box");
+        feedbackBox.style.display = "none";
+        feedbackBox.innerHTML = "";
+
+        // Wörter oben im Pool neu generieren
+        initPool();
+    }
+</script>
+
+</body>
+</html>
