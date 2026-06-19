@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Richtig oder Falsch?</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --success-light: #f0fff4;
+            --error-color: #c53030;
+            --error-light: #fff5f5;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instruction {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        /* Szenarien-Karten */
+        .scenario-card {
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-header {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #718096;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .dialog-box {
+            background-color: #f7fafc;
+            border-left: 3px solid #cbd5e0;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+
+        .dialog-line {
+            margin-bottom: 5px;
+        }
+        .dialog-line strong {
+            color: #4a5568;
+        }
+
+        /* Buttons für Richtig / Falsch */
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .judge-btn {
+            flex: 1;
+            border: 2px solid #cbd5e0;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: white;
+            transition: all 0.2s;
+        }
+
+        .btn-true:hover:not(:disabled) {
+            border-color: var(--success-color);
+            color: var(--success-color);
+            background-color: var(--success-light);
+        }
+
+        .btn-false:hover:not(:disabled) {
+            border-color: var(--error-color);
+            color: var(--error-color);
+            background-color: var(--error-light);
+        }
+
+        /* Aktive Auswahl-Stile nach Klick */
+        .judge-btn.selected-true {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .judge-btn.selected-false {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        /* Feedback-Zustand für die gesamte Karte */
+        .scenario-card.card-correct {
+            border-color: var(--success-color);
+            background-color: #fafdfff4;
+        }
+        .scenario-card.card-incorrect {
+            border-color: var(--error-color);
+            background-color: #fffdfdfff;
+        }
+
+        .card-feedback {
+            display: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-top: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback-correct {
+            background-color: var(--success-light);
+            color: #22543d;
+            border: 1px solid #c6f6d5;
+        }
+
+        .feedback-incorrect {
+            background-color: var(--error-light);
+            color: #742a2a;
+            border: 1px solid #fed7d7;
+        }
+
+        /* Globaler Auswerten- & Reset-Bereich */
+        .global-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 35px;
+        }
+
+        .action-btn {
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .check-btn { background-color: var(--primary-color); }
+        .check-btn:hover { background-color: #2b6cb0; }
+        
+        .reset-btn { background-color: #718096; }
+        .reset-btn:hover { background-color: #4a5568; }
+
+        .summary-box {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Anpassungen */
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            h1 { font-size: 1.5rem; }
+            .instruction { font-size: 0.95rem; padding: 12px; }
+            .scenario-card { padding: 15px; }
+            .judge-btn { font-size: 1rem; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Beurteilung von Reaktionen</h1>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Lies dir die drei Mini-Szenarien durch. Entscheide, ob die Reaktion mit <strong>„Как бы не так!“</strong> jeweils logisch und kontextuell korrekt eingesetzt wurde oder nicht.
+    </div>
+
+    <!-- Szenario 1 -->
+    <div class="scenario-card" id="card-0">
+        <div class="scenario-header">Szenario 1</div>
+        <div class="dialog-box">
+            <div class="dialog-line"><strong>A:</strong> „Es regnet draußen heftig.“</div>
+            <div class="dialog-line"><strong>B:</strong> „Как бы не так!“</div>
+        </div>
+        <div class="btn-row">
+            <button class="judge-btn btn-true" onclick="selectAnswer(0, true)">Richtig</button>
+            <button class="judge-btn btn-false" onclick="selectAnswer(0, false)">Falsch</button>
+        </div>
+        <div class="card-feedback" id="feedback-0"></div>
+    </div>
+
+    <!-- Szenario 2 -->
+    <div class="scenario-card" id="card-1">
+        <div class="scenario-header">Szenario 2</div>
+        <div class="dialog-box">
+            <div class="dialog-line"><strong>A:</strong> „Du räumst heute bestimmt freiwillig dein Zimmer auf!“</div>
+            <div class="dialog-line"><strong>B:</strong> „Как бы не так!“</div>
+        </div>
+        <div class="btn-row">
+            <button class="judge-btn btn-true" onclick="selectAnswer(1, true)">Richtig</button>
+            <button class="judge-btn btn-false" onclick="selectAnswer(1, false)">Falsch</button>
+        </div>
+        <div class="card-feedback" id="feedback-1"></div>
+    </div>
+
+    <!-- Szenario 3 -->
+    <div class="scenario-card" id="card-2">
+        <div class="scenario-header">Szenario 3</div>
+        <div class="dialog-box">
+            <div class="dialog-line"><strong>A:</strong> „Unser Team verliert das Match morgen ganz sicher.“</div>
+            <div class="dialog-line"><strong>B:</strong> „Как бы не так!“</div>
+        </div>
+        <div class="btn-row">
+            <button class="judge-btn btn-true" onclick="selectAnswer(2, true)">Richtig</button>
+            <button class="judge-btn btn-false" onclick="selectAnswer(2, false)">Falsch</button>
+        </div>
+        <div class="card-feedback" id="feedback-2"></div>
+    </div>
+
+    <!-- Steuerung unten -->
+    <div class="global-controls">
+        <div id="summary" class="summary-box"></div>
+        <button class="action-btn check-btn" id="submit-btn" onclick="evaluateAll()">Abschicken & Auswerten</button>
+        <button class="action-btn reset-btn" onclick="resetGame()">🔄 Neustart</button>
+    </div>
+</div>
+
+<script>
+    // Die korrekten Lösungen für die 3 Szenarien (false = Falsch, true = Richtig)
+    const solutions = [false, true, true];
+    
+    // Die Erklärungen für das Feedback
+    const explanations = [
+        "<strong>Falsch ist hier korrekt!</strong> Eine reine Feststellung über das Wetter („Es regnet“) ist keine Behauptung oder Prognose, der man schlagfertig mit „Von wegen!“ widerspricht. Hier müsste man schlicht sagen, dass es nicht stimmt.",
+        "<strong>Richtig!</strong> Person A stellt eine ironische oder unliebsame Behauptung über die Zukunft auf („Du räumst bestimmt freiwillig auf“). Die Antwort „Von wegen! / Denkste!“ passt hier perfekt.",
+        "<strong>Richtig!</strong> Person A äußert eine pessimistische Prognose („Unser Team verliert sicher“). Mit „Как бы не так!“ widerspricht Person B vehement im Sinne von „Nichts da! / Denkste! (Wir gewinnen!)“."
+    ];
+
+    let userAnswers = [null, null, null];
+    let isEvaluated = false;
+
+    function selectAnswer(scenIndex, choice) {
+        if (isEvaluated) return;
+
+        userAnswers[scenIndex] = choice;
+
+        const card = document.getElementById(`card-${scenIndex}`);
+        const btnTrue = card.querySelector('.btn-true');
+        const btnFalse = card.querySelector('.btn-false');
+
+        // Visuelles Feedback für die Auswahl umschalten
+        if (choice === true) {
+            btnTrue.classList.add('selected-true');
+            btnFalse.classList.remove('selected-false');
+        } else {
+            btnFalse.classList.add('selected-false');
+            btnTrue.classList.remove('selected-true');
+        }
+    }
+
+    function evaluateAll() {
+        if (isEvaluated) return;
+
+        // Validieren, ob alle Szenarien beantwortet wurden
+        if (userAnswers.includes(null)) {
+            const summary = document.getElementById('summary');
+            summary.style.display = "block";
+            summary.style.backgroundColor = "#feebc8";
+            summary.style.color = "#744210";
+            summary.innerHTML = "Bitte beantworte zuerst alle drei Szenarien!";
+            return;
+        }
+
+        isEvaluated = true;
+        let correctCount = 0;
+
+        // Alle drei Karten auswerten
+        for (let i = 0; i < solutions.length; i++) {
+            const card = document.getElementById(`card-${i}`);
+            const feedbackBox = document.getElementById(`feedback-${i}`);
+            
+            // Buttons einfrieren
+            card.querySelector('.btn-true').disabled = true;
+            card.querySelector('.btn-false').disabled = true;
+
+            feedbackBox.style.display = "block";
+
+            if (userAnswers[i] === solutions[i]) {
+                correctCount++;
+                card.classList.add('card-correct');
+                feedbackBox.className = "card-feedback feedback-correct";
+                feedbackBox.innerHTML = `✨ <strong>Richtig!</strong> ${explanations[i]}`;
+            } else {
+                card.classList.add('card-incorrect');
+                feedbackBox.className = "card-feedback feedback-incorrect";
+                feedbackBox.innerHTML = `❌ <strong>Leider falsch.</strong> ${explanations[i]}`;
+            }
+        }
+
+        // Gesamtergebnis anzeigen
+        const summary = document.getElementById('summary');
+        summary.style.display = "block";
+        if (correctCount === 3) {
+            summary.style.backgroundColor = "#c6f6d5";
+            summary.style.color = "#22543d";
+            summary.innerHTML = `🎉 Perfekt! Du hast ${correctCount} von 3 Punkten erreicht!`;
+        } else {
+            summary.style.backgroundColor = "#feebc8";
+            summary.style.color = "#744210";
+            summary.innerHTML = `Du hast ${correctCount} von 3 Punkten erreicht. Schau dir die Erklärungen oben an!`;
+        }
+
+        // Prüfen-Button ausblenden
+        document.getElementById('submit-btn').style.display = "none";
+    }
+
+    function resetGame() {
+        isEvaluated = false;
+        userAnswers = [null, null, null];
+
+        // Zusammenfassung ausblenden
+        const summary = document.getElementById('summary');
+        summary.style.display = "none";
+        summary.innerHTML = "";
+
+        // Prüfen-Button wieder einblenden
+        document.getElementById('submit-btn').style.display = "block";
+
+        // Alle Karten zurücksetzen
+        for (let i = 0; i < solutions.length; i++) {
+            const card = document.getElementById(`card-${i}`);
+            card.className = "scenario-card";
+            
+            const feedbackBox = document.getElementById(`feedback-${i}`);
+            feedbackBox.style.display = "none";
+            feedbackBox.innerHTML = "";
+
+            const btnTrue = card.querySelector('.btn-true');
+            const btnFalse = card.querySelector('.btn-false');
+            
+            btnTrue.disabled = false;
+            btnFalse.disabled = false;
+            
+            btnTrue.classList.remove('selected-true');
+            btnFalse.classList.remove('selected-false');
+        }
+    }
+</script>
+
+</body>
+</html>
