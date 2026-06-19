@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Tonfall-Quiz</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --error-color: #c53030;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instruction {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .audio-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .audio-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px 20px;
+            transition: all 0.2s ease;
+        }
+
+        .audio-card-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        /* Versteckter echter Radio Button, Label umschließt die Karte */
+        .audio-card input[type="radio"] {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .play-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .play-btn:hover { background-color: #1a365d; }
+        .play-btn:active { transform: scale(0.95); }
+
+        .track-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #4a5568;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Zustände für Auswahl & Validierung */
+        .audio-card.selected {
+            border-color: var(--primary-color);
+            background-color: #ebf8ff;
+        }
+
+        .audio-card.correct {
+            border-color: var(--success-color) !important;
+            background-color: #f0fff4 !important;
+        }
+        .audio-card.correct .track-label { color: #22543d; }
+        .audio-card.correct .play-btn { background-color: var(--success-color); }
+
+        .audio-card.incorrect {
+            border-color: var(--error-color) !important;
+            background-color: #fff5f5 !important;
+        }
+        .audio-card.incorrect .track-label { color: #742a2a; }
+        .audio-card.incorrect .play-btn { background-color: var(--error-color); }
+
+        /* Footer & Buttons */
+        .controls-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+        }
+
+        .check-btn { background-color: var(--success-color); }
+        .check-btn:hover { background-color: #22543d; }
+        
+        .reset-btn { background-color: #718096; }
+        .reset-btn:hover { background-color: #4a5568; }
+
+        .feedback {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Optimierung */
+        @media (max-width: 480px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.4rem; }
+            .audio-card { padding: 12px 15px; }
+            .track-label { font-size: 1rem; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tonfall-Quiz (Nuancen verstehen)</h1>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Eine Redewendung lebt von der Intonation. Klicke auf die Play-Buttons, um dir die drei Varianten anzuhören. Welche Version transportiert die <strong>richtige, selbstbewusste und widersprechende Stimmung</strong> von <em>Как бы не так!</em>?
+    </div>
+
+    <div class="audio-row">
+        <!-- Option A -->
+        <div class="audio-card" id="card-A">
+            <div class="audio-card-left">
+                <button class="play-btn" onclick="playTone('happy')">▶</button>
+                <label for="radio-A" class="track-label" onclick="selectCard('A')">Hörbeispiel A</label>
+            </div>
+            <input type="radio" name="toneQuiz" id="radio-A" value="A" onclick="selectCard('A')">
+        </div>
+
+        <!-- Option B (RICHTIG) -->
+        <div class="audio-card" id="card-B">
+            <div class="audio-card-left">
+                <button class="play-btn" onclick="playTone('confident')">▶</button>
+                <label for="radio-B" class="track-label" onclick="selectCard('B')">Hörbeispiel B</label>
+            </div>
+            <input type="radio" name="toneQuiz" id="radio-B" value="B" onclick="selectCard('B')">
+        </div>
+
+        <!-- Option C -->
+        <div class="audio-card" id="card-C">
+            <div class="audio-card-left">
+                <button class="play-btn" onclick="playTone('bored')">▶</button>
+                <label for="radio-C" class="track-label" onclick="selectCard('C')">Hörbeispiel C</label>
+            </div>
+            <input type="radio" name="toneQuiz" id="radio-C" value="C" onclick="selectCard('C')">
+        </div>
+    </div>
+
+    <div class="controls-footer">
+        <div id="feedback-box" class="feedback"></div>
+        
+        <div class="btn-group">
+            <button class="action-btn check-btn" onclick="checkAnswer()">Prüfen</button>
+            <button class="action-btn reset-btn" onclick="resetGame()">🔄 Neustart</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isEvaluated = false;
+
+    // Simulierter Tonfall über native Browser-Stimmenkompression (Web Speech API)
+    function playTone(mood) {
+        // Falls eine Sprachausgabe läuft, stoppen
+        window.speechSynthesis.cancel();
+
+        const text = "Как бы не так!";
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "ru-RU"; // Russischer Sprachraum
+
+        // Künstliche Anpassung des Tonfalls je nach gewählter Variante
+        if (mood === 'happy') {
+            utterance.pitch = 1.6;  // Sehr hoch, klingt fröhlich/piepsig
+            utterance.rate = 1.1;   // Etwas schneller
+        } else if (mood === 'confident') {
+            utterance.pitch = 0.9;  // Bestimmt, etwas tiefer und kraftvoller
+            utterance.rate = 0.85;  // Leicht akzentuiert verzögert für Schärfe
+        } else if (mood === 'bored') {
+            utterance.pitch = 0.6;  // Sehr tief
+            utterance.rate = 0.6;   // Extrem langsam, gelangweilt/wütend
+        }
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function selectCard(letter) {
+        if (isEvaluated) return;
+        
+        // Radio Button triggern
+        document.getElementById('radio-' + letter).checked = true;
+
+        // Visuelle Selektionsklasse verteilen
+        document.querySelectorAll('.audio-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById('card-' + letter).classList.add('selected');
+    }
+
+    function checkAnswer() {
+        if (isEvaluated) return;
+
+        const selectedRadio = document.querySelector('input[name="toneQuiz"]:checked');
+        const feedbackBox = document.getElementById('feedback-box');
+
+        if (!selectedRadio) {
+            feedbackBox.style.display = "block";
+            feedbackBox.style.backgroundColor = "#feebc8";
+            feedbackBox.style.color = "#744210";
+            feedbackBox.style.borderColor = "#dd6b20";
+            feedbackBox.innerHTML = "<strong>Bitte wähle ein Hörbeispiel aus, bevor du prüfst!</strong>";
+            return;
+        }
+
+        const answer = selectedRadio.value;
+        isEvaluated = true;
+
+        // B ist die richtige, selbstbewusste Version
+        document.getElementById('card-B').classList.add('correct');
+        feedbackBox.style.display = "block";
+
+        if (answer === 'B') {
+            feedbackBox.style.backgroundColor = "#c6f6d5";
+            feedbackBox.style.color = "#22543d";
+            feedbackBox.style.borderColor = "var(--success-color)";
+            feedbackBox.innerHTML = "<strong>Ausgezeichnet!</strong> Beispiel B transportiert die nötige Schärfe und den selbstbewussten, leicht fallenden Tonfall, der für ein klares „Von wegen!“ im Russischen typisch ist.";
+        } else {
+            document.getElementById('card-' + answer).classList.add('incorrect');
+            feedbackBox.style.backgroundColor = "#fed7d7";
+            feedbackBox.style.color = "#742a2a";
+            feedbackBox.style.borderColor = "var(--error-color)";
+
+            if (answer === 'A') {
+                feedbackBox.innerHTML = "<strong>Leider falsch.</strong> Probe A klingt viel zu fröhlich und freundlich. „Как бы не так!“ ist jedoch ein spürbarer, vehementer Widerspruch.";
+            } else if (answer === 'C') {
+                feedbackBox.innerHTML = "<strong>Nicht ganz.</strong> Probe C klingt extrem träge, gelangweilt oder fast schon bedrohlich langsam. Das fängt die schlagfertige Dynamik der Redewendung nicht richtig ein.";
+            }
+        }
+    }
+
+    function resetGame() {
+        isEvaluated = false;
+        window.speechSynthesis.cancel();
+
+        const selectedRadio = document.querySelector('input[name="toneQuiz"]:checked');
+        if (selectedRadio) selectedRadio.checked = false;
+
+        document.querySelectorAll('.audio-card').forEach(card => {
+            card.className = "audio-card";
+        });
+
+        const feedbackBox = document.getElementById('feedback-box');
+        feedbackBox.style.display = "none";
+        feedbackBox.innerHTML = "";
+    }
+</script>
+
+</body>
+</html>
