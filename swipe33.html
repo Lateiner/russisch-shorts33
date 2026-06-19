@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Swipe-Check</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --error-color: #c53030;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .instruction {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        .progress {
+            font-weight: bold;
+            color: #718096;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Karten-Stapel Bereich */
+        .card-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Einzelne Karte */
+        .swipe-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            cursor: grab;
+            user-select: none;
+            touch-action: none; /* Verhindert das Standard-Scrollen beim Wischen */
+            transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s;
+        }
+
+        .swipe-card:active {
+            cursor: grabbing;
+        }
+
+        .scenario-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        /* Indikatoren beim Ziehen */
+        .badge {
+            position: absolute;
+            top: 15px;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        .badge-yes { right: 15px; border: 2px solid var(--success-color); color: var(--success-color); }
+        .badge-no { left: 15px; border: 2px solid var(--error-color); color: var(--error-color); }
+
+        /* Steuerung unten */
+        .controls-row {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .swipe-btn {
+            flex: 1;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s, opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-no { background-color: var(--error-color); }
+        .btn-yes { background-color: var(--success-color); }
+        .swipe-btn:active { transform: scale(0.95); }
+
+        .reset-btn {
+            background: none;
+            border: 2px solid #718096;
+            color: #4a5568;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: none;
+        }
+        .reset-btn:hover { background-color: #edf2f7; }
+
+        /* Feedback-Ergebnisbox */
+        .feedback-summary {
+            display: none;
+            width: 100%;
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Swipe-Inhalts-Check</h1>
+    <div class="progress" id="progress-text">Karte 1 von 4</div>
+
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Passt die Situation perfekt zu <em>„Как бы не так!“</em> (als schlagfertiges „Von wegen!“)? 
+        <br>👉 <strong>Wische nach RECHTS</strong> oder klicke <strong>„Passt“</strong>.
+        <br>👈 <strong>Wische nach LINKS</strong> oder klicke <strong>„Passt nicht“</strong>.
+    </div>
+
+    <!-- Spielfeld für Karteikarten -->
+    <div class="card-container" id="card-container">
+        <!-- Karten werden per JS generiert, um Stapel-Effekt zu wahren -->
+    </div>
+
+    <!-- Tasten-Steuerung -->
+    <div class="controls-row" id="controls">
+        <button class="swipe-btn btn-no" onclick="handleButtonAction(false)">👈 Passt nicht</button>
+        <button class="swipe-btn btn-yes" onclick="handleButtonAction(true)">Passt 👍 👉</button>
+    </div>
+
+    <div class="feedback-summary" id="final-feedback"></div>
+    <button class="reset-btn" id="reset-button" onclick="resetQuiz()">🔄 Neustart</button>
+</div>
+
+<script>
+    // Die Szenarien (true = Passt / nach rechts swipen, false = Passt nicht / nach links swipen)
+    const scenarios = [
+        { text: "Jemand behauptet, du kannst absolut nicht kochen, aber du bist heimlich Profikoch.", correct: true },
+        { text: "Ein Freund schenkt dir Pralinen und du möchtest dich höflich bedanken.", correct: false },
+        { text: "Dein Lehrer meint ironisch: ‚Ihr habt heute bestimmt alle freiwillig die Hausaufgaben gemacht!‘", correct: true },
+        { text: "Du triffst jemanden auf der Straße und fragst ihn nach dem Weg zum Bahnhof.", correct: false }
+    ];
+
+    let currentCardIndex = 0;
+    let score = 0;
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    let activeCardElement = null;
+
+    window.onload = function() {
+        initQuiz();
+    };
+
+    function initQuiz() {
+        currentCardIndex = 0;
+        score = 0;
+        document.getElementById("final-feedback").style.display = "none";
+        document.getElementById("reset-button").style.display = "none";
+        document.getElementById("controls").style.display = "flex";
+        buildStack();
+        updateUI();
+    }
+
+    function buildStack() {
+        const container = document.getElementById("card-container");
+        container.innerHTML = "";
+
+        // Karten rückwärts einfügen, damit die erste oben liegt
+        for (let i = scenarios.length - 1; i >= 0; i--) {
+            const card = document.createElement("div");
+            card.className = "swipe-card";
+            card.id = `card-${i}`;
+            if (i !== 0) card.style.display = "none"; // Nur die oberste aktiv zeigen
+
+            card.innerHTML = `
+                <div class="badge badge-yes">Passt</div>
+                <div class="badge badge-no">Nicht</div>
+                <div class="scenario-text">${scenarios[i].text}</div>
+            `;
+
+            // Touch & Mouse Events für echtes Swipen registrieren
+            card.addEventListener("mousedown", dragStart);
+            card.addEventListener("mousemove", dragMove);
+            card.addEventListener("mouseup", dragEnd);
+            card.addEventListener("mouseleave", dragEnd);
+
+            card.addEventListener("touchstart", dragStart, { passive: true });
+            card.addEventListener("touchmove", dragMove, { passive: true });
+            card.addEventListener("touchend", dragEnd);
+
+            container.appendChild(card);
+        }
+        activeCardElement = document.getElementById("card-0");
+    }
+
+    function updateUI() {
+        if (currentCardIndex < scenarios.length) {
+            document.getElementById("progress-text").innerText = `Karte ${currentCardIndex + 1} von ${scenarios.length}`;
+            const nextCard = document.getElementById(`card-${currentCardIndex}`);
+            if (nextCard) {
+                nextCard.style.display = "flex";
+                activeCardElement = nextCard;
+            }
+        } else {
+            showEvaluation();
+        }
+    }
+
+    // Drag & Swipe Logik
+    function dragStart(e) {
+        if (isDragging) return;
+        isDragging = true;
+        startX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
+        activeCardElement.style.transition = "none";
+    }
+
+    function dragMove(e) {
+        if (!isDragging) return;
+        currentX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
+        const diffX = currentX - startX;
+
+        // Rotation & Verschiebung berechnen
+        const rotation = diffX / 15;
+        activeCardElement.style.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+
+        // Overlays einblenden je nach Richtung
+        const badgeYes = activeCardElement.querySelector(".badge-yes");
+        const badgeNo = activeCardElement.querySelector(".badge-no");
+
+        if (diffX > 20) {
+            badgeYes.style.opacity = Math.min(diffX / 100, 1);
+            badgeNo.style.opacity = 0;
+        } else if (diffX < -20) {
+            badgeNo.style.opacity = Math.min(Math.abs(diffX) / 100, 1);
+            badgeYes.style.opacity = 0;
+        } else {
+            badgeYes.style.opacity = 0;
+            badgeNo.style.opacity = 0;
+        }
+    }
+
+    function dragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        const diffX = currentX - startX;
+        const threshold = 120; // Ab dieser Pixelanzahl gilt es als Swipe
+
+        activeCardElement.style.transition = "transform 0.3s ease, opacity 0.3s ease";
+
+        if (diffX > threshold) {
+            // Nach rechts geschoben
+            animateOut(true);
+        } else if (diffX < -threshold) {
+            // Nach links geschoben
+            animateOut(false);
+        } else {
+            // Zurückprallen lassen, falls zu kurz gezogen
+            activeCardElement.style.transform = "translateX(0px) rotate(0deg)";
+            activeCardElement.querySelector(".badge-yes").style.opacity = 0;
+            activeCardElement.querySelector(".badge-no").style.opacity = 0;
+        }
+        startX = 0;
+        currentX = 0;
+    }
+
+    // Button-Klicks simulieren den Swipe
+    function handleButtonAction(userChoice) {
+        if (currentCardIndex >= scenarios.length) return;
+        animateOut(userChoice);
+    }
+
+    function animateOut(userChoice) {
+        const card = activeCardElement;
+        const direction = userChoice ? 1 : -1;
+        
+        // Farbe der Karte kurz validieren vor dem Out-Fly (visueller Indikator)
+        card.style.borderColor = userChoice ? "var(--success-color)" : "var(--error-color)";
+
+        card.style.transform = `translateX(${direction * 600}px) rotate(${direction * 30}deg)`;
+        card.style.opacity = "0";
+
+        // Antwort auswerten
+        if (userChoice === scenarios[currentCardIndex].correct) {
+            score++;
+        }
+
+        setTimeout(() => {
+            card.style.display = "none";
+            currentCardIndex++;
+            updateUI();
+        }, 200);
+    }
+
+    function showEvaluation() {
+        document.getElementById("progress-text").innerText = "Abgeschlossen!";
+        document.getElementById("controls").style.display = "none";
+
+        const feedbackBox = document.getElementById("final-feedback");
+        feedbackBox.style.display = "block";
+
+        if (score === scenarios.length) {
+            feedbackBox.innerHTML = `🎉 <strong>Perfekt! ${score} von ${scenarios.length} richtig!</strong><br>Du hast ein feines Gespür dafür bewiesen, wann man „Von wegen!“ einsetzt und wann nicht!`;
+        } else {
+            feedbackBox.innerHTML = `👍 <strong>Gut gemacht! Resultat: ${score} von ${scenarios.length} richtig.</strong><br>Erinnerung: „Как бы не так!“ funktioniert nur als vehementer, schlagfertiger Widerspruch.`;
+        }
+
+        document.getElementById("reset-button").style.display = "inline-block";
+    }
+
+    function resetQuiz() {
+        initQuiz();
+    }
+</script>
+
+</body>
+</html>
