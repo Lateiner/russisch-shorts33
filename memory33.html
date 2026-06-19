@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernen: Memory</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --success-color: #2f855a;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --card-back-color: #4a5568;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.4;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .stats {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .instruction {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Memory Grid-Layout */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+            perspective: 1000px; /* Für den 3D-Flip-Effekt */
+        }
+
+        /* Memory Karte */
+        .memory-card {
+            height: 110px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, opacity 0.6s ease;
+            cursor: pointer;
+        }
+
+        /* Vorder- und Rückseite der Karten */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+
+        /* Kartenrückseite (Verdeckt) */
+        .card-back {
+            background-color: var(--card-back-color);
+            color: white;
+            border: 2px solid #2d3748;
+        }
+        
+        .card-back::before {
+            content: "❓";
+            font-size: 1.8rem;
+        }
+
+        /* Kartenvorderseite (Aufgedeckt) */
+        .card-front {
+            background-color: #fff;
+            border: 2px solid var(--primary-color);
+            color: var(--text-color);
+            transform: rotateY(180deg);
+        }
+
+        /* Zustand: Umgedreht */
+        .memory-card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Zustand: Gefundenes Paar (Erfolgsfarbe vor dem Verschwinden) */
+        .memory-card.is-matched .card-front {
+            border-color: var(--success-color);
+            background-color: #f0fff4;
+            color: #22543d;
+        }
+
+        /* Zustand: Unsichtbar machen nach Match */
+        .memory-card.is-hidden {
+            opacity: 0;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* Steuerung */
+        .reset-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+        }
+
+        .reset-btn:hover {
+            background-color: #4a5568;
+        }
+
+        /* Responsive Anpassungen */
+        @media (max-width: 700px) {
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 Spalten auf Tablets */
+            }
+            .memory-card {
+                height: 100px;
+            }
+            .card-face {
+                font-size: 0.85rem;
+                padding: 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .memory-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 Spalten auf Handys */
+                gap: 8px;
+            }
+            .memory-card {
+                height: 90px;
+            }
+            .card-face {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Paare finden (Visuelle Verknüpfung)</h1>
+    <div class="stats" id="moves-counter">Züge: 0 | Gefundene Paare: 0 / 6</div>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Finde die zusammengehörigen Paare! Eine Karte beschreibt eine Situation auf Russisch (inklusive der passenden Erwiderung), die andere liefert die exakte deutsche Übersetzung. Gefundene Paare verschwinden automatisch.
+    </div>
+
+    <!-- Spielfeld -->
+    <div class="memory-grid" id="grid"></div>
+
+    <button class="reset-btn" onclick="resetGame()">🔄 Neustart</button>
+</div>
+
+<script>
+    // Die 6 Paare (ID muss bei Match-Partnern identisch sein)
+    const cardsData = [
+        { id: 1, text: "Ты никогда не сдашь... — Как бы не так!", lang: "ru" },
+        { id: 1, text: "Du schaffst das nie... — Von wegen!", lang: "de" },
+        
+        { id: 2, text: "Автобус больше не приедет. — Как бы не так!", lang: "ru" },
+        { id: 2, text: "Der Bus kommt nicht mehr. — Denkste!", lang: "de" },
+        
+        { id: 3, text: "Ты не сможешь это перевести. — Как бы не так!", lang: "ru" },
+        { id: 3, text: "Du kannst das nicht übersetzen. — Von wegen!", lang: "de" },
+        
+        { id: 4, text: "Обед готов, приятного аппетита!", lang: "ru" },
+        { id: 4, text: "Das Essen ist fertig, guten Appetit!", lang: "de" },
+        
+        { id: 5, text: "Привет! Как твои дела?", lang: "ru" },
+        { id: 5, text: "Hallo! Wie geht es dir?", lang: "de" },
+        
+        { id: 6, text: "Большое спасибо!", lang: "ru" },
+        { id: 6, text: "Vielen Dank!", lang: "de" }
+    ];
+
+    let flippedCards = [];
+    let moves = 0;
+    let matches = 0;
+    let lockBoard = false;
+
+    // Spiel initialisieren
+    window.onload = function() {
+        setupBoard();
+    };
+
+    function setupBoard() {
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "";
+        flippedCards = [];
+        moves = 0;
+        matches = 0;
+        lockBoard = false;
+        updateStats();
+
+        // Karten duplizieren/mischen
+        const shuffledCards = [...cardsData].sort(() => Math.random() - 0.5);
+
+        // HTML Elemente generieren
+        shuffledCards.forEach(data => {
+            const card = document.createElement("div");
+            card.className = "memory-card";
+            card.dataset.id = data.id;
+
+            const back = document.createElement("div");
+            back.className = "card-face card-back";
+
+            const front = document.createElement("div");
+            front.className = "card-face card-front";
+            front.innerText = data.text;
+
+            // Flagge oder dezente Einfärbung je nach Sprache (optional für bessere Barrierefreiheit)
+            if(data.lang === "ru") front.style.borderStyle = "solid"; 
+
+            card.appendChild(back);
+            card.appendChild(front);
+            
+            card.onclick = function() { flipCard(this); };
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard(card) {
+        // Klick-Sperren prüfen
+        if (lockBoard) return;
+        if (card.classList.contains('is-flipped') || card.classList.contains('is-hidden')) return;
+
+        card.classList.add('is-flipped');
+        flippedCards.push(card);
+
+        if (flippedCards.length === 2) {
+            moves++;
+            updateStats();
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [card1, card2] = flippedCards;
+        const isMatch = card1.dataset.id === card2.dataset.id;
+
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        lockBoard = true;
+        matches++;
+        updateStats();
+
+        // Als gelöst markieren
+        flippedCards.forEach(card => card.classList.add('is-matched'));
+
+        // Nach 1 Sekunde sanft ausblenden (Fade-out)
+        setTimeout(() => {
+            flippedCards.forEach(card => {
+                card.classList.add('is-hidden');
+            });
+            flippedCards = [];
+            lockBoard = false;
+            
+            if (matches === 6) {
+                setTimeout(() => {
+                    alert(`🎉 Gratulation! Du hast alle Paare in ${moves} Zügen gefunden!`);
+                }, 400);
+            }
+        }, 1000);
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+
+        // Wenn kein Match, nach 1.5 Sekunden wieder umdrehen
+        setTimeout(() => {
+            flippedCards.forEach(card => card.classList.remove('is-flipped'));
+            flippedCards = [];
+            lockBoard = false;
+        }, 1500);
+    }
+
+    function updateStats() {
+        document.getElementById("moves-counter").innerText = `Züge: ${moves} | Gefundene Paare: ${matches} / 6`;
+    }
+
+    function resetGame() {
+        setupBoard();
+    }
+</script>
+
+</body>
+</html>
